@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from 'src/auth/auth.module';
-import { UsersModule } from 'src/users/users.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -33,7 +33,7 @@ import { UsersModule } from 'src/users/users.module';
         }
 
         if (!jwtSecret) {
-          throw new Error('❌ JWT_SECRET no está definido en el archivo .env');
+          throw new Error('JWT_SECRET no está definido en el archivo .env');
         }
 
         return {
