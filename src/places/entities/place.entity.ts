@@ -15,25 +15,23 @@ export class Place {
   @PrimaryGeneratedColumn()
   id: number;
 
-  // 🔥 DATOS BÁSICOS
   @Column({ length: 255 })
   name: string;
 
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  // 🔥 UBICACIÓN
   @Column({ length: 100 })
   province: string;
 
   @Column({ length: 100 })
-  city: string; // ← Agregué ciudad (más específico)
+  city: string; 
 
   @Column({ length: 255 })
   address: string;
 
   @Column({ length: 100, nullable: true })
-  neighborhood: string; // ← Barrio (útil para búsquedas)
+  neighborhood: string;
 
 
   @Column({ nullable: true })
@@ -52,9 +50,8 @@ export class Place {
   @Column({ type: 'simple-array', nullable: true })
   tags: string[]; 
 
-  // METADATOS
   @Column({ default: true })
-  isActive: boolean; // ← Para desactivar en lugar de eliminar
+  isActive: boolean; // 
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'createdBy' })
@@ -63,9 +60,7 @@ export class Place {
   @Column({ nullable: true })
   createdById: number;
 
-  // 🔥 RELACIONES (visits/wishlist removed — entidades no encontradas)
 
-  // 🔥 TIMESTAMPS
   @CreateDateColumn()
   createdAt: Date;
 
