@@ -8,22 +8,37 @@ import { DataSource, DataSourceOptions } from 'typeorm';
 export function buildDataSourceOptions(
   env: NodeJS.ProcessEnv = process.env,
 ): DataSourceOptions {
-  const required = ['DB_HOST', 'DB_USERNAME', 'DB_PASSWORD', 'DB_DATABASE'];
-  const missing = required.filter((key) => !env[key]);
+  /* Dos formas de configurar la conexión:
+     - DATABASE_URL con la URI completa (lo que dan Supabase y Render)
+     - las cinco variables sueltas (lo cómodo en local)
+     La URI gana si está, así en producción alcanza con pegar una sola cosa. */
+  const url = env.DATABASE_URL;
 
-  if (missing.length > 0) {
-    throw new Error(
-      `Faltan variables de entorno de la base de datos: ${missing.join(', ')}`,
-    );
+  if (!url) {
+    const required = ['DB_HOST', 'DB_USERNAME', 'DB_PASSWORD', 'DB_DATABASE'];
+    const missing = required.filter((key) => !env[key]);
+
+    if (missing.length > 0) {
+      throw new Error(
+        'Falta configurar la base de datos: definí DATABASE_URL, o estas ' +
+          `variables sueltas: ${missing.join(', ')}`,
+      );
+    }
   }
+
+  const connection = url
+    ? { url }
+    : {
+        host: env.DB_HOST,
+        port: Number(env.DB_PORT ?? 5432),
+        username: env.DB_USERNAME,
+        password: env.DB_PASSWORD,
+        database: env.DB_DATABASE,
+      };
 
   return {
     type: 'postgres',
-    host: env.DB_HOST,
-    port: Number(env.DB_PORT ?? 5432),
-    username: env.DB_USERNAME,
-    password: env.DB_PASSWORD,
-    database: env.DB_DATABASE,
+    ...connection,
     entities: [__dirname + '/../**/*.entity{.ts,.js}'],
     migrations: [__dirname + '/../migrations/*{.ts,.js}'],
     // Apagado a propósito: el esquema se cambia con migraciones, no
