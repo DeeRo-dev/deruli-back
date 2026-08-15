@@ -11,6 +11,7 @@ import { MealsModule } from './meals/meals.module';
 import { ScoringModule } from './scoring/scoring.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { buildDataSourceOptions } from './config/data-source';
+import { HealthController } from './health/health.controller';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { buildDataSourceOptions } from './config/data-source';
     MealsModule,
     ScoringModule,
   ],
+  controllers: [HealthController],
   providers: [
     {
       provide: APP_GUARD,

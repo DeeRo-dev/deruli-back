@@ -32,6 +32,9 @@ async function bootstrap() {
   // arrastre el User entero devuelve el hash de la contraseña.
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
-  await app.listen(process.env.PORT ?? 3000);
+  /* '0.0.0.0' es obligatorio en Render: si escucha solo en localhost, el
+     balanceador no llega y el deploy queda "en vivo" pero sin responder.
+     El puerto lo inyecta Render por env, no hay que fijarlo a mano. */
+  await app.listen(process.env.PORT ?? 3000, '0.0.0.0');
 }
 void bootstrap();
