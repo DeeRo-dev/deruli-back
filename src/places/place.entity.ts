@@ -22,6 +22,47 @@ export class Place {
   @Column()
   address: string;
 
+  /* Ciudad y provincia son nullable solo por los lugares cargados antes de
+     existir estos campos. El formulario los pide para todo lugar nuevo. */
+  @Index()
+  @Column({ type: 'varchar', length: 120, nullable: true })
+  city: string | null;
+
+  @Index()
+  @Column({ type: 'varchar', length: 120, nullable: true })
+  province: string | null;
+
+  @Index()
+  @Column({ type: 'varchar', length: 120, default: 'Argentina' })
+  country: string;
+
+  /* Coordenadas para el mapa. numeric conserva la precisión (float no), y
+     el transformer las devuelve como number: sin él, pg entrega strings y
+     el front recibiría "-34.603722" en vez de -34.603722. */
+  @Column({
+    type: 'numeric',
+    precision: 9,
+    scale: 6,
+    nullable: true,
+    transformer: {
+      to: (value: number | null) => value,
+      from: (value: string | null) => (value === null ? null : Number(value)),
+    },
+  })
+  latitude: number | null;
+
+  @Column({
+    type: 'numeric',
+    precision: 9,
+    scale: 6,
+    nullable: true,
+    transformer: {
+      to: (value: number | null) => value,
+      from: (value: string | null) => (value === null ? null : Number(value)),
+    },
+  })
+  longitude: number | null;
+
   /** Handle sin la arroba, ej. "osteriabianca". */
   @Column({ nullable: true, type: 'varchar' })
   instagram: string | null;

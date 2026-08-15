@@ -12,6 +12,7 @@ import {
 import { PlacesService } from './places.service';
 import { PlaceReviewsService } from './place-reviews.service';
 import { CreatePlaceDto } from './dto/create-place.dto';
+import { SearchPlacesDto } from './dto/search-places.dto';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 // import type: con emitDecoratorMetadata, un tipo usado en una firma
 // decorada no puede importarse como valor.
@@ -30,9 +31,10 @@ export class PlacesController {
     return this.placesService.create(user.id, dto);
   }
 
+  /** Paginado y ordenable: sort=top trae los mejor puntuados. */
   @Get()
-  findAll(@Query('search') search?: string) {
-    return this.placesService.findAll(search);
+  search(@Query() query: SearchPlacesDto) {
+    return this.placesService.search(query);
   }
 
   /** Las mesas que lo visitaron, qué puntuó cada comensal y el global. */

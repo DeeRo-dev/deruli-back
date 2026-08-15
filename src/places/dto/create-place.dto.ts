@@ -1,4 +1,6 @@
 import {
+  IsLatitude,
+  IsLongitude,
   IsOptional,
   IsString,
   IsUrl,
@@ -19,6 +21,32 @@ export class CreatePlaceDto {
     message: 'La dirección no puede superar los 200 caracteres',
   })
   address: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(120, { message: 'La ciudad no puede superar los 120 caracteres' })
+  city?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(120, {
+    message: 'La provincia no puede superar los 120 caracteres',
+  })
+  province?: string;
+
+  @IsOptional()
+  @IsLatitude({ message: 'La latitud no es válida' })
+  latitude?: number;
+
+  @IsOptional()
+  @IsLongitude({ message: 'La longitud no es válida' })
+  longitude?: number;
+
+  /** Si no viene, queda Argentina. */
+  @IsOptional()
+  @IsString()
+  @MaxLength(120, { message: 'El país no puede superar los 120 caracteres' })
+  country?: string;
 
   /** Se guarda sin arroba: el front la agrega al mostrar. */
   @IsOptional()

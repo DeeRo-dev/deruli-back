@@ -36,6 +36,10 @@ export class Table {
   @Column({ default: true })
   isPrivate: boolean;
 
+  /** Foto propia de la mesa. Editable más adelante; hoy siempre null. */
+  @Column({ type: 'varchar', nullable: true })
+  photoUrl: string | null;
+
   /** Código para sumarse a la mesa sin invitación individual. */
   @Index({ unique: true })
   @Column({ type: 'varchar', length: 12 })
@@ -61,4 +65,6 @@ export class Table {
      detalle de mesa se resuelva en una sola llamada. */
   upcomingOuting?: Outing | null;
   pastVisits?: Outing[];
+  /** Última salida ya ocurrida. El listado muestra "Última: <lugar>". */
+  lastVisit?: Outing | null;
 }

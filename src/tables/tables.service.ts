@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Table } from './table.entity';
 import { TableMember } from './table-member.entity';
 import { CreateTableDto } from './dto/create-table.dto';
@@ -88,7 +88,7 @@ export class TablesService {
 
   /** Solo las mesas donde el usuario es miembro. */
   async findAllForUser(userId: number): Promise<Table[]> {
-    return this.tablesRepository
+    const tables = await this.tablesRepository
       .createQueryBuilder('table')
       .innerJoin('table.members', 'membership', 'membership.userId = :userId', {
         userId,
@@ -97,6 +97,26 @@ export class TablesService {
       .leftJoinAndSelect('member.user', 'user')
       .orderBy('table.updatedAt', 'DESC')
       .getMany();
+
+    if (tables.length === 0) return tables;
+
+    /* Una sola consulta para las salidas de todas las mesas, en vez de una
+       por mesa: el listado se arma con dos queries, no con N+1. */
+    const outings = await this.outingsRepository.find({
+      where: { tableId: In(tables.map((table) => table.id)) },
+      relations: { place: true },
+      order: { dateTime: 'DESC' },
+    });
+
+    for (const table of tables) {
+      const own = outings.filter((outing) => outing.tableId === table.id);
+      table.lastVisit = own.find((outing) => outing.status === 'done') ?? null;
+      table.upcomingOuting =
+        [...own].reverse().find((outing) => outing.status === 'planned') ??
+        null;
+    }
+
+    return tables;
   }
 
   /**
