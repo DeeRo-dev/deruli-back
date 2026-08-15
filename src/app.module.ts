@@ -24,8 +24,14 @@ import { HealthController } from './health/health.controller';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => {
+        /* No se nombra el .env: en un hosting las variables vienen del
+           panel, y mandar a buscar un archivo que no existe hace perder
+           tiempo. */
         if (!configService.get<string>('JWT_SECRET')) {
-          throw new Error('JWT_SECRET no está definido en el archivo .env');
+          throw new Error(
+            'Falta la variable de entorno JWT_SECRET. En local va en .env; ' +
+              'en Render, en Environment.',
+          );
         }
 
         // Misma config que usa el CLI de migraciones, para que runtime y

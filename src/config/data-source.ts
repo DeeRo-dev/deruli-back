@@ -36,6 +36,24 @@ export function buildDataSourceOptions(
         database: env.DB_DATABASE,
       };
 
+  /* Diagnóstico con DB_DEBUG=true. Nunca imprime la contraseña: solo su
+     largo y si tiene espacios en los bordes, que es lo que hace fallar la
+     autenticación sin dejar rastro visible. Apagalo cuando termines. */
+  if (env.DB_DEBUG === 'true') {
+    const password = env.DB_PASSWORD ?? '';
+    console.log('[db] configuración recibida:', {
+      usaDATABASE_URL: Boolean(url),
+      host: env.DB_HOST,
+      port: env.DB_PORT,
+      database: env.DB_DATABASE,
+      username: JSON.stringify(env.DB_USERNAME),
+      passwordLargo: password.length,
+      passwordConEspaciosAlBorde: password !== password.trim(),
+      passwordParecePercentEncoded: /%[0-9A-Fa-f]{2}/.test(password),
+      ssl: env.DB_SSL === 'true',
+    });
+  }
+
   return {
     type: 'postgres',
     ...connection,
