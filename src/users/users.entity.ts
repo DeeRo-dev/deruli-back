@@ -1,4 +1,12 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, BeforeInsert } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  BeforeInsert,
+} from 'typeorm';
+import { Exclude } from 'class-transformer';
 import * as bcrypt from 'bcrypt';
 
 @Entity('users')
@@ -9,6 +17,11 @@ export class User {
   @Column({ unique: true })
   email: string;
 
+  /**
+   * @Exclude + ClassSerializerInterceptor global: el hash nunca sale en una
+   * respuesta, ni siquiera si una relación arrastra el User entero.
+   */
+  @Exclude()
   @Column()
   password: string;
 
