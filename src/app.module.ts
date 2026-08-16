@@ -36,7 +36,22 @@ import { HealthController } from './health/health.controller';
 
         // Misma config que usa el CLI de migraciones, para que runtime y
         // migraciones nunca se desincronicen.
-        return buildDataSourceOptions();
+        return {
+          ...buildDataSourceOptions(),
+
+          /* Los reintentos son de @nestjs/typeorm, no de TypeORM: por eso
+             van acá y no en el data source que comparte con el CLI.
+
+             Por defecto son 10. Con una credencial equivocada eso da 10
+             fallos de autenticación por arranque, y como el hosting
+             reinicia el proceso caído queda un bucle que termina en el
+             "too many authentication failures" de Supabase.
+
+             Con 2, un corte de red pasajero se salva igual, pero una
+             credencial mal falla rápido en vez de martillar la base. */
+          retryAttempts: Number(configService.get('DB_RETRY_ATTEMPTS') ?? 2),
+          retryDelay: 2000,
+        };
       },
     }),
 
