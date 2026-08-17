@@ -9,6 +9,7 @@ import { TablesModule } from './tables/tables.module';
 import { OutingsModule } from './outings/outings.module';
 import { MealsModule } from './meals/meals.module';
 import { ScoringModule } from './scoring/scoring.module';
+import { StorageModule } from './storage/storage.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
 import { buildDataSourceOptions } from './config/data-source';
 import { HealthController } from './health/health.controller';
@@ -54,6 +55,9 @@ import { HealthController } from './health/health.controller';
         };
       },
     }),
+
+    // Global: lo consumen users, places, tables y meals.
+    StorageModule,
 
     AuthModule,
     UsersModule,

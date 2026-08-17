@@ -10,6 +10,9 @@ import { TableMember } from './table-member.entity';
 import { CreateTableDto } from './dto/create-table.dto';
 import { Outing } from '../outings/outing.entity';
 import { generateInviteCode, normalizeInviteCode } from './lib/invite-code';
+import { ImagesService } from '../storage/images.service';
+import type { ImageView } from '../storage/images.service';
+import type { UploadedFile } from '../storage/storage.service';
 
 @Injectable()
 export class TablesService {
@@ -20,6 +23,7 @@ export class TablesService {
     private membersRepository: Repository<TableMember>,
     @InjectRepository(Outing)
     private outingsRepository: Repository<Outing>,
+    private readonly images: ImagesService,
   ) {}
 
   async create(userId: number, dto: CreateTableDto): Promise<Table> {
@@ -150,6 +154,35 @@ export class TablesService {
     });
 
     return table;
+  }
+
+  /**
+   * Foto de la mesa. Cualquier miembro puede cambiarla: la mesa es del
+   * grupo, no de quien la creó.
+   */
+  async setPhoto(
+    tableId: number,
+    userId: number,
+    file: UploadedFile | undefined,
+  ): Promise<{ photoUrl: string; image: ImageView }> {
+    await this.assertMembership(tableId, userId);
+
+    const image = await this.images.replaceSingle({
+      resource: 'tables',
+      resourceId: tableId,
+      file,
+      userId,
+    });
+
+    await this.tablesRepository.update(tableId, { photoUrl: image.url });
+
+    return { photoUrl: image.url, image };
+  }
+
+  async removePhoto(tableId: number, userId: number): Promise<void> {
+    await this.assertMembership(tableId, userId);
+    await this.images.deleteAllFor('tables', tableId);
+    await this.tablesRepository.update(tableId, { photoUrl: null });
   }
 
   /** Lanza 404 si el usuario no es miembro. Lo usa OutingsService. */

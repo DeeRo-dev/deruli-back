@@ -63,6 +63,14 @@ export class Place {
   })
   longitude: number | null;
 
+  /**
+   * Cuándo se intentó geocodificar la dirección. Marca el intento, no el
+   * éxito: sin esto, un lugar con dirección imposible de resolver
+   * consultaría al geocoder cada vez que alguien abre su pantalla.
+   */
+  @Column({ type: 'timestamp', nullable: true })
+  geocodedAt: Date | null;
+
   /** Handle sin la arroba, ej. "osteriabianca". */
   @Column({ nullable: true, type: 'varchar' })
   instagram: string | null;

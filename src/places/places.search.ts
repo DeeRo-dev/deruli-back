@@ -47,6 +47,33 @@ export const PLACE_STATS_CTE = `
   )
 `;
 
+/**
+ * Un comentario suelto por lugar, para mostrarlo como muestra en la tarjeta
+ * del listado. Sale sorteado en cada consulta: no hay un "mejor" comentario
+ * y rotar da la sensación de que la comunidad escribe.
+ *
+ * Se une a PLACE_STATS_CTE, por eso arranca con coma.
+ */
+export const PLACE_COMMENT_CTE = `
+  , comments AS (
+    SELECT o."placeId" AS place_id, r.comment
+      FROM outing_ratings r
+      JOIN outings o ON o.id = r."outingId" AND o.status = 'done'
+     WHERE btrim(COALESCE(r.comment, '')) <> ''
+    UNION ALL
+    SELECT o."placeId", mr.comment
+      FROM meal_ratings mr
+      JOIN meals m ON m.id = mr."mealId"
+      JOIN outings o ON o.id = m."outingId" AND o.status = 'done'
+     WHERE btrim(COALESCE(mr.comment, '')) <> ''
+  ),
+  place_comment AS (
+    SELECT DISTINCT ON (place_id) place_id, comment
+      FROM comments
+     ORDER BY place_id, random()
+  )
+`;
+
 export interface PlaceFilters {
   search?: string;
   city?: string;

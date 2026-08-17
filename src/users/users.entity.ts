@@ -28,8 +28,9 @@ export class User {
   @Column()
   name: string;
 
-  @Column({ nullable: true })
-  avatar: string;
+  /** URL pública de la foto de perfil. El archivo vive en Supabase Storage. */
+  @Column({ type: 'varchar', nullable: true })
+  avatar: string | null;
 
   @Column({ default: true })
   isActive: boolean;

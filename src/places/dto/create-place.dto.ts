@@ -34,13 +34,14 @@ export class CreatePlaceDto {
   })
   province?: string;
 
-  @IsOptional()
-  @IsLatitude({ message: 'La latitud no es válida' })
-  latitude?: number;
+  /* Obligatorias: sin punto el lugar no se puede señalar en el mapa, y
+     geocodificar la dirección escrita a mano erra por kilómetros. Lo marca
+     quien está ahí. */
+  @IsLatitude({ message: 'Marcá la ubicación en el mapa' })
+  latitude: number;
 
-  @IsOptional()
-  @IsLongitude({ message: 'La longitud no es válida' })
-  longitude?: number;
+  @IsLongitude({ message: 'Marcá la ubicación en el mapa' })
+  longitude: number;
 
   /** Si no viene, queda Argentina. */
   @IsOptional()
