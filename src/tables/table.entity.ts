@@ -64,6 +64,12 @@ export class Table {
   /* Campos calculados, no persistidos: los arma TablesService para que el
      detalle de mesa se resuelva en una sola llamada. */
   upcomingOuting?: Outing | null;
+
+  /**
+   * La salida que ya ocurrió y la mesa todavía no cerró: le falta cargar
+   * lo que comieron. No sale de la base, la arma `TablesService`.
+   */
+  pendingOuting?: Outing | null;
   pastVisits?: Outing[];
   /** Última salida ya ocurrida. El listado muestra "Última: <lugar>". */
   lastVisit?: Outing | null;

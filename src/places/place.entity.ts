@@ -22,6 +22,16 @@ export class Place {
   @Column()
   address: string;
 
+  /** Lo que lo hace especial, en palabras de quien lo cargó. */
+  @Column({ type: 'text', nullable: true })
+  description: string | null;
+
+  /* Se guarda tal cual lo escriben: los teléfonos varían por país y
+     normalizarlos acá terminaría rompiendo los que no siguen el formato
+     que supusimos. */
+  @Column({ type: 'varchar', length: 30, nullable: true })
+  phone: string | null;
+
   /* Ciudad y provincia son nullable solo por los lugares cargados antes de
      existir estos campos. El formulario los pide para todo lugar nuevo. */
   @Index()

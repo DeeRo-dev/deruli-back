@@ -8,6 +8,7 @@ import { PlacesModule } from './places/places.module';
 import { TablesModule } from './tables/tables.module';
 import { OutingsModule } from './outings/outings.module';
 import { MealsModule } from './meals/meals.module';
+import { FavoritesModule } from './favorites/favorites.module';
 import { ScoringModule } from './scoring/scoring.module';
 import { StorageModule } from './storage/storage.module';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
@@ -65,6 +66,7 @@ import { HealthController } from './health/health.controller';
     TablesModule,
     OutingsModule,
     MealsModule,
+    FavoritesModule,
     ScoringModule,
   ],
   controllers: [HealthController],

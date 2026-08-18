@@ -5,6 +5,7 @@ import { Outing } from '../outings/outing.entity';
 import { OutingRating } from '../outings/outing-rating.entity';
 import { Meal } from '../meals/meal.entity';
 import { MealRating } from '../meals/meal-rating.entity';
+import { occurredWhere } from '../outings/outing-occurred';
 
 /* CÓMO SE AGREGAN LOS DERULIS
 
@@ -166,7 +167,7 @@ export class ScoringService {
     placeId: number,
   ): Promise<{ derulis: number | null; visitCount: number }> {
     const outings = await this.outingsRepository.find({
-      where: { placeId, status: 'done' },
+      where: occurredWhere({ placeId }),
       select: { id: true },
     });
 

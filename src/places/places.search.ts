@@ -1,3 +1,5 @@
+import { occurredSql } from '../outings/outing-occurred';
+
 /**
  * Agregación de derulis en SQL, no en memoria.
  *
@@ -42,7 +44,7 @@ export const PLACE_STATS_CTE = `
            AVG(oa.score) AS derulis,
            COUNT(*)::int AS visit_count
       FROM outing_avg oa
-      JOIN outings o ON o.id = oa.outing_id AND o.status = 'done'
+      JOIN outings o ON o.id = oa.outing_id AND ${occurredSql()}
      GROUP BY o."placeId"
   )
 `;
@@ -58,13 +60,13 @@ export const PLACE_COMMENT_CTE = `
   , comments AS (
     SELECT o."placeId" AS place_id, r.comment
       FROM outing_ratings r
-      JOIN outings o ON o.id = r."outingId" AND o.status = 'done'
+      JOIN outings o ON o.id = r."outingId" AND ${occurredSql()}
      WHERE btrim(COALESCE(r.comment, '')) <> ''
     UNION ALL
     SELECT o."placeId", mr.comment
       FROM meal_ratings mr
       JOIN meals m ON m.id = mr."mealId"
-      JOIN outings o ON o.id = m."outingId" AND o.status = 'done'
+      JOIN outings o ON o.id = m."outingId" AND ${occurredSql()}
      WHERE btrim(COALESCE(mr.comment, '')) <> ''
   ),
   place_comment AS (

@@ -17,6 +17,7 @@ import {
   PLACE_COMMENT_CTE,
   buildPlaceWhere,
 } from './places.search';
+import { occurredSql } from '../outings/outing-occurred';
 
 export interface PlaceRow {
   id: number;
@@ -91,7 +92,7 @@ export class PlacesService {
 
   /**
    * Solo puede aportar fotos de un lugar quien estuvo: hace falta haber
-   * sido comensal ('going') de una salida terminada ahí.
+   * sido comensal ('going') de una salida que ya ocurrió ahí.
    *
    * Es el mismo criterio que para puntuar (`OutingsService.assertGuest`):
    * los lugares son públicos para leer, pero lo que se les agrega sale de
@@ -103,7 +104,7 @@ export class PlacesService {
          FROM outings o
          JOIN outing_guests g
            ON g."outingId" = o.id AND g."userId" = $2 AND g.status = 'going'
-        WHERE o."placeId" = $1 AND o.status = 'done'
+        WHERE o."placeId" = $1 AND ${occurredSql()}
         LIMIT 1`,
       [placeId, userId],
     );
@@ -143,7 +144,13 @@ export class PlacesService {
     file: UploadedFile | undefined,
   ): Promise<ImageView> {
     const place = await this.assertExists(placeId);
-    await this.assertVisited(placeId, userId);
+
+    /* Quien cargó la ficha puede ponerle la foto aunque todavía no haya
+       comido ahí: la sube en el mismo formulario de alta, antes de que
+       exista salida alguna. Para el resto sigue valiendo haber ido. */
+    if (place.createdById !== userId) {
+      await this.assertVisited(placeId, userId);
+    }
 
     const image = await this.images.add({
       resource: 'places',
@@ -233,6 +240,8 @@ export class PlacesService {
     const place = this.placesRepository.create({
       name: dto.name.trim(),
       address: dto.address.trim(),
+      description: dto.description?.trim() || null,
+      phone: dto.phone?.trim() || null,
       instagram: dto.instagram?.trim() ?? null,
       city: dto.city?.trim() || null,
       province: dto.province?.trim() || null,

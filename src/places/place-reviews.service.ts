@@ -5,6 +5,7 @@ import { Outing } from '../outings/outing.entity';
 import { PlacesService } from './places.service';
 import { ScoringService, average } from '../scoring/scoring.service';
 import type { DinerScore } from '../scoring/scoring.service';
+import { occurredWhere } from '../outings/outing-occurred';
 
 export interface TableReview {
   outingId: number;
@@ -40,7 +41,7 @@ export class PlaceReviewsService {
 
     // Solo salidas que ya ocurrieron: no se puntúa algo que no pasó.
     const outings = await this.outingsRepository.find({
-      where: { placeId, status: 'done' },
+      where: occurredWhere({ placeId }),
       relations: { table: true },
       order: { dateTime: 'DESC' },
     });

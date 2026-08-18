@@ -14,6 +14,7 @@ import { UpdateOutingDto } from './dto/update-outing.dto';
 import { RateOutingDto } from './dto/rate-outing.dto';
 import { TablesService } from '../tables/tables.service';
 import { PlacesService } from '../places/places.service';
+import { hasOccurred } from './outing-occurred';
 
 @Injectable()
 export class OutingsService {
@@ -108,7 +109,7 @@ export class OutingsService {
   async join(id: number, userId: number): Promise<Outing> {
     const outing = await this.findOneForUser(id, userId);
 
-    if (outing.status !== 'planned') {
+    if (hasOccurred(outing) || outing.status === 'cancelled') {
       throw new ConflictException(
         'Solo podés sumarte a una salida que todavía no ocurrió',
       );
@@ -133,7 +134,7 @@ export class OutingsService {
   async leave(id: number, userId: number): Promise<Outing> {
     const outing = await this.findOneForUser(id, userId);
 
-    if (outing.status !== 'planned') {
+    if (hasOccurred(outing) || outing.status === 'cancelled') {
       throw new ConflictException(
         'No podés bajarte de una salida que ya ocurrió',
       );

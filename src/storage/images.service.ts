@@ -15,6 +15,13 @@ export interface ImageView {
   url: string;
   storagePath: string;
   createdAt: Date;
+  approved: boolean;
+  /**
+   * Quién la subió, con nombre y todo. Va en la vista —y no solo el id en
+   * la fila— porque el objetivo es poder mirar una galería y saber de quién
+   * es cada foto, sin cruzar tablas a mano.
+   */
+  uploadedBy: { id: number; name: string };
 }
 
 function toView(image: Image): ImageView {
@@ -23,6 +30,13 @@ function toView(image: Image): ImageView {
     url: image.url,
     storagePath: image.storagePath,
     createdAt: image.createdAt,
+    approved: image.approved,
+    uploadedBy: {
+      id: image.uploadedById,
+      /* Sin la relación cargada no hay nombre. Pasa solo en respuestas a
+         quien acaba de subir la foto, que ya sabe quién es. */
+      name: image.uploadedBy?.name ?? '',
+    },
   };
 }
 
@@ -79,7 +93,10 @@ export class ImagesService {
     resourceId: number,
   ): Promise<ImageView[]> {
     const images = await this.imagesRepository.find({
-      where: { resource, resourceId },
+      // Las no aprobadas no se muestran: es todo lo que hace falta acá
+      // para que moderar más adelante sea prender el switch.
+      where: { resource, resourceId, approved: true },
+      relations: { uploadedBy: true },
       order: { createdAt: 'ASC' },
     });
 

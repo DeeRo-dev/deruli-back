@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './users.entity';
+import { occurredSql } from '../outings/outing-occurred';
 
 export interface UserStats {
   /** Lugares distintos donde comió: no cuenta dos veces el mismo. */
@@ -25,8 +26,8 @@ export class UserStatsService {
    * Todo en una consulta con subqueries: son cuatro conteos independientes
    * y hacerlos por separado serían cuatro viajes a la base.
    *
-   * Solo cuentan las salidas 'done' y donde el usuario fue realmente
-   * ('going'): estar invitado no es haber visitado.
+   * Solo cuentan las salidas que ya ocurrieron y donde el usuario fue
+   * realmente ('going'): estar invitado no es haber visitado.
    */
   async getStats(userId: number): Promise<UserStats> {
     const rows = await this.usersRepository.manager.query<
@@ -42,7 +43,7 @@ export class UserStatsService {
             FROM outings o
             JOIN outing_guests g
               ON g."outingId" = o.id AND g."userId" = $1 AND g.status = 'going'
-           WHERE o.status = 'done') AS places_visited,
+           WHERE ${occurredSql()}) AS places_visited,
 
          (SELECT COUNT(DISTINCT outing_id) FROM (
              SELECT r."outingId" AS outing_id

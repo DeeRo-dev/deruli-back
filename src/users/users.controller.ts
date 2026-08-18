@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -6,11 +7,15 @@ import {
   HttpStatus,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
+  Put,
   UploadedFile as UploadedFileParam,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UserStatsService } from './user-stats.service';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { UploadImage } from '../storage/image-upload.decorator';
 import type { UploadedFile } from '../storage/storage.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
@@ -34,6 +39,33 @@ export class UsersController {
   @Get('me/stats')
   myStats(@CurrentUser() user: AuthenticatedUser) {
     return this.userStatsService.getStats(user.id);
+  }
+
+  /** Editar el propio perfil. Hoy es solo el nombre. */
+  @Patch('me')
+  updateProfile(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: UpdateProfileDto,
+  ) {
+    return this.usersService.updateProfile(user.id, dto.name);
+  }
+
+  /**
+   * Cambiar la contraseña. PUT y no PATCH: no es una edición parcial, se
+   * reemplaza entera. Devuelve 204 —no hay nada que mostrar— y exige la
+   * contraseña actual.
+   */
+  @Put('me/password')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  changePassword(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: ChangePasswordDto,
+  ) {
+    return this.usersService.changePassword(
+      user.id,
+      dto.currentPassword,
+      dto.newPassword,
+    );
   }
 
   /**

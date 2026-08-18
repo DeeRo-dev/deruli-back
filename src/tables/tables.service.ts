@@ -13,6 +13,12 @@ import { generateInviteCode, normalizeInviteCode } from './lib/invite-code';
 import { ImagesService } from '../storage/images.service';
 import type { ImageView } from '../storage/images.service';
 import type { UploadedFile } from '../storage/storage.service';
+import {
+  hasOccurred,
+  occurredWhere,
+  pendingWhere,
+  upcomingWhere,
+} from '../outings/outing-occurred';
 
 @Injectable()
 export class TablesService {
@@ -114,10 +120,17 @@ export class TablesService {
 
     for (const table of tables) {
       const own = outings.filter((outing) => outing.tableId === table.id);
-      table.lastVisit = own.find((outing) => outing.status === 'done') ?? null;
+      table.lastVisit = own.find(hasOccurred) ?? null;
+      /* La que ya ocurrió y sigue abierta: el listado la usa para avisar
+         que a esa mesa le falta cargar la reseña. */
+      table.pendingOuting =
+        own.find(
+          (outing) => outing.status === 'planned' && hasOccurred(outing),
+        ) ?? null;
+      /* `own` viene ordenado por fecha DESC: al revés, la primera que
+         todavía no ocurrió es la más cercana en el tiempo. */
       table.upcomingOuting =
-        [...own].reverse().find((outing) => outing.status === 'planned') ??
-        null;
+        [...own].reverse().find((outing) => !hasOccurred(outing)) ?? null;
     }
 
     return tables;
@@ -139,19 +152,33 @@ export class TablesService {
       throw new NotFoundException(`Mesa con ID ${id} no encontrada`);
     }
 
-    // El front necesita las dos listas en la misma pantalla.
+    /* Tres cortes distintos y no dos: además de lo que viene y lo que
+       ya pasó, está la salida que ocurrió y nadie cerró todavía. Esa es la
+       que la mesa tiene que ver primero —le falta cargar lo que comieron—
+       y antes quedaba anunciada como "próxima salida" para siempre. */
     table.upcomingOuting = await this.outingsRepository.findOne({
-      where: { tableId: id, status: 'planned' },
+      where: upcomingWhere({ tableId: id }),
       relations: { place: true },
       order: { dateTime: 'ASC' },
     });
 
-    table.pastVisits = await this.outingsRepository.find({
-      where: { tableId: id, status: 'done' },
+    table.pendingOuting = await this.outingsRepository.findOne({
+      where: pendingWhere({ tableId: id }),
       relations: { place: true },
       order: { dateTime: 'DESC' },
-      take: 10,
     });
+
+    const visits = await this.outingsRepository.find({
+      where: occurredWhere({ tableId: id }),
+      relations: { place: true },
+      order: { dateTime: 'DESC' },
+      take: 11,
+    });
+
+    // La pendiente ya se muestra arriba: repetirla en el historial sobra.
+    table.pastVisits = visits
+      .filter((outing) => outing.id !== table.pendingOuting?.id)
+      .slice(0, 10);
 
     return table;
   }

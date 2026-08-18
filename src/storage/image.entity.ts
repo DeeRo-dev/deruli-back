@@ -62,6 +62,17 @@ export class Image {
   @Column({ type: 'int' })
   sizeBytes: number;
 
+  /**
+   * Si la imagen se puede mostrar.
+   *
+   * Arranca en `true`: hoy no hay quien modere, y dejar las fotos
+   * esperando aprobación sin nadie del otro lado sería esconderlas para
+   * siempre. Cuando exista el panel de admin, lo único que cambia es el
+   * default y quién lo pone en `true`; las lecturas ya filtran por esto.
+   */
+  @Column({ type: 'boolean', default: true })
+  approved: boolean;
+
   /** Quién la subió. Sirve para moderar y para permisos de borrado. */
   @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'uploadedById' })

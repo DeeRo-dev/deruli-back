@@ -1,4 +1,8 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": ["node_modules", "test", "dist", "**/*spec.ts"]
+  /* `scripts` queda afuera del build: son utilidades de desarrollo que se
+     corren con ts-node. Incluirlas hace que TypeScript infiera la raíz un
+     nivel más arriba y emita en dist/src/ en vez de dist/, lo que rompe
+     `start:prod` (node dist/main) y las migraciones de producción. */
+  "exclude": ["node_modules", "test", "dist", "scripts", "**/*spec.ts"]
 }

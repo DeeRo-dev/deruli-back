@@ -24,6 +24,23 @@ export class CreatePlaceDto {
 
   @IsOptional()
   @IsString()
+  @MaxLength(500, {
+    message: 'La descripción no puede superar los 500 caracteres',
+  })
+  description?: string;
+
+  /* Formato laxo a propósito: acepta +54 9 11 1234-5678, (011) 4321 y lo
+     que use cada país. Solo se rechaza lo que no puede ser un teléfono. */
+  @IsOptional()
+  @IsString()
+  @MaxLength(30, { message: 'El teléfono no puede superar los 30 caracteres' })
+  @Matches(/^[0-9+()\-.\s]{6,30}$/, {
+    message: 'El teléfono solo admite números, espacios y + ( ) - .',
+  })
+  phone?: string;
+
+  @IsOptional()
+  @IsString()
   @MaxLength(120, { message: 'La ciudad no puede superar los 120 caracteres' })
   city?: string;
 

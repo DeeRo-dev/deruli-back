@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/users.entity';
 import { Repository } from 'typeorm';
@@ -75,6 +81,41 @@ export class UsersService {
     const user = await this.findOne(id);
     const { password, ...profile } = user;
     return profile;
+  }
+
+  /** Cambiar el nombre visible. El email no se toca: identifica la cuenta. */
+  async updateProfile(userId: number, name: string): Promise<Partial<User>> {
+    await this.findOne(userId);
+    await this.usersRepository.update(userId, { name: name.trim() });
+    return this.getProfile(userId);
+  }
+
+  /**
+   * Cambiar la contraseña.
+   *
+   * El hash se calcula acá y no en la entidad: `@BeforeInsert` solo corre
+   * al crear, y `repository.update()` ni siquiera dispara los hooks. Sin
+   * esto la contraseña nueva quedaría guardada en texto plano.
+   */
+  async changePassword(
+    userId: number,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<void> {
+    const user = await this.findOne(userId);
+
+    if (!(await user.comparePassword(currentPassword))) {
+      throw new UnauthorizedException('La contraseña actual no es correcta');
+    }
+
+    if (await user.comparePassword(newPassword)) {
+      throw new BadRequestException(
+        'La contraseña nueva tiene que ser distinta de la actual',
+      );
+    }
+
+    const hashed = await bcrypt.hash(newPassword, await bcrypt.genSalt(10));
+    await this.usersRepository.update(userId, { password: hashed });
   }
 
   /**

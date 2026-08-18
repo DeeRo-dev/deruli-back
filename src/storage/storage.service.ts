@@ -26,7 +26,13 @@ export interface StoredFile {
   sizeBytes: number;
 }
 
-export const IMAGE_BUCKET = 'app-images';
+/**
+ * Bucket por defecto. Se puede pisar con SUPABASE_BUCKET para que
+ * desarrollo y producción no escriban en el mismo lugar: los ids de los
+ * recursos salen de cada base, así que `places/12/` significa un lugar
+ * distinto en cada entorno y las fotos se pisarían entre sí.
+ */
+export const DEFAULT_IMAGE_BUCKET = 'app-images';
 
 /** Extensión por MIME. La del archivo del cliente no se usa nunca. */
 const EXTENSION_BY_MIME: Record<string, string> = {
@@ -46,6 +52,7 @@ export const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 export class StorageService implements OnModuleInit {
   private readonly logger = new Logger(StorageService.name);
   private client: SupabaseClient | null = null;
+  private bucket = DEFAULT_IMAGE_BUCKET;
 
   constructor(private readonly config: ConfigService) {}
 
@@ -65,11 +72,17 @@ export class StorageService implements OnModuleInit {
       return;
     }
 
+    this.bucket =
+      this.config.get<string>('SUPABASE_BUCKET')?.trim() ||
+      DEFAULT_IMAGE_BUCKET;
+
     /* La service role key saltea las políticas RLS del bucket. Por eso vive
        solo acá, en el backend, y nunca viaja al front. */
     this.client = createClient(url, key, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
+
+    this.logger.log(`Imágenes: bucket "${this.bucket}"`);
   }
 
   private get storage() {
@@ -78,7 +91,7 @@ export class StorageService implements OnModuleInit {
         'El almacenamiento de imágenes no está configurado en el servidor',
       );
     }
-    return this.client.storage.from(IMAGE_BUCKET);
+    return this.client.storage.from(this.bucket);
   }
 
   /**
